@@ -26,6 +26,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list all configurations",
 	Long:  `list all configurations`,
+	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		list()
 	},

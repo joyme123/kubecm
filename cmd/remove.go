@@ -32,7 +32,9 @@ var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove one config",
 	Long:  `remove one config`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		removeOpt.name = args[0]
 		remove(&removeOpt)
 	},
 }
@@ -49,8 +51,6 @@ func remove(opt *removeOptions) {
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
-	removeCmd.Flags().StringVarP(&removeOpt.name, "name", "n", "", "config name")
-	renameCmd.MarkFlagRequired("name")
 
 	// Here you will define your flags and configuration settings.
 

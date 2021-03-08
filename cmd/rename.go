@@ -33,7 +33,10 @@ var renameCmd = &cobra.Command{
 	Use:   "rename",
 	Short: "rename set config name",
 	Long:  `rename set config name`,
+	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
+		renameOpt.name = args[0]
+		renameOpt.to = args[1]
 		rename(renameOpt)
 	},
 }
@@ -50,10 +53,6 @@ func rename(opt renameOptions) {
 
 func init() {
 	rootCmd.AddCommand(renameCmd)
-	renameCmd.Flags().StringVarP(&renameOpt.name, "name", "n", "", "config name")
-	renameCmd.Flags().StringVarP(&renameOpt.to, "to", "t", "", "which name you want to change to")
-	renameCmd.MarkFlagRequired("name")
-	renameCmd.MarkFlagRequired("to")
 
 	// Here you will define your flags and configuration settings.
 

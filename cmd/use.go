@@ -32,7 +32,9 @@ var useCmd = &cobra.Command{
 	Use:   "use",
 	Short: "use set kube config file to specified one",
 	Long:  `use set kube config file to specified one`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		useOpt.name = args[0]
 		use(useOpt)
 	},
 }
@@ -49,8 +51,6 @@ func use(opt useOptions) {
 
 func init() {
 	rootCmd.AddCommand(useCmd)
-	useCmd.Flags().StringVarP(&useOpt.name, "name", "n", "", "config name")
-	renameCmd.MarkFlagRequired("name")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

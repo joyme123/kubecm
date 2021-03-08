@@ -23,7 +23,7 @@ import (
 
 type importOptions struct {
 	name     string
-	location string
+	from string
 }
 
 var importOpt importOptions
@@ -33,7 +33,9 @@ var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "import config from path",
 	Long:  `import config from path`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		importOpt.name = args[0]
 		runImport(importOpt)
 	},
 }
@@ -43,7 +45,7 @@ func runImport(opt importOptions) {
 	if err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
-	err = m.Import(opt.name, opt.location)
+	err = m.Import(opt.name, opt.from)
 	if err != nil {
 		log.Fatalf("import config error: %v", err)
 	}
@@ -51,10 +53,8 @@ func runImport(opt importOptions) {
 
 func init() {
 	rootCmd.AddCommand(importCmd)
-	importCmd.Flags().StringVarP(&importOpt.name, "name", "n", "", "config name")
-	importCmd.Flags().StringVarP(&importOpt.location, "location", "l", "", "config location")
-	renameCmd.MarkFlagRequired("name")
-	renameCmd.MarkFlagRequired("location")
+	importCmd.Flags().StringVarP(&importOpt.from, "from", "f", "", "import config from")
+	renameCmd.MarkFlagRequired("from")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
