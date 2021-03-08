@@ -20,7 +20,14 @@ kubecm list
 
 import config file
 ```bash
+# import fro local filesystem
 kubecm import -n dev_129_cluster -l /tmp/configs/config_dev_182_cluster
+
+# import via ssh with password 
+kubecm import dev_0_101_cluster --from=ssh://root@192.168.0.101:/etc/kubernetes/kubectl.kubeconfig  -p mypassword
+
+# import via ssh with key, default from $HOME/.ssh/id_rsa
+kubecm import dev_0_102_cluster --from=ssh://root@192.168.0.102:/etc/kubernetes/kubectl.kubeconfig 
 ```
 
 use config file

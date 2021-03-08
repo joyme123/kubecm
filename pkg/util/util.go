@@ -6,11 +6,7 @@ import (
 	"os"
 )
 
-func Copy(src, dst string) error {
-	data, err := ioutil.ReadFile(src)
-	if err != nil {
-		return err
-	}
+func Copy(data []byte, dst string) error {
 	return ioutil.WriteFile(dst, data, 0755)
 }
 

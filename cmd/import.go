@@ -18,12 +18,18 @@ package cmd
 import (
 	"log"
 
+	"github.com/joyme123/kubecm/pkg/loader"
+
 	"github.com/spf13/cobra"
 )
 
 type importOptions struct {
-	name     string
-	from string
+	name       string
+	from       string
+	password   string
+	publicKey  string
+	privateKey string
+	sshPort    int
 }
 
 var importOpt importOptions
@@ -33,7 +39,7 @@ var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "import config from path",
 	Long:  `import config from path`,
-	Args: cobra.MinimumNArgs(1),
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		importOpt.name = args[0]
 		runImport(importOpt)
@@ -45,16 +51,47 @@ func runImport(opt importOptions) {
 	if err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
-	err = m.Import(opt.name, opt.from)
+
+	var data []byte
+	if loader.IsLocal(opt.from) {
+		data, err = loader.LocalGet(opt.from)
+		if err != nil {
+			log.Fatalf("get config from local error: %v", err)
+		}
+	} else if loader.IsSSH(opt.from) {
+		if len(opt.password) > 0 {
+			data, err = loader.SSHGetWithPassword(opt.from, opt.sshPort, opt.password)
+			if err != nil {
+				log.Fatalf("get config from ssh with password error: %v", err)
+			}
+		} else {
+			data, err = loader.SSHGetWithPrivateKey(opt.from, opt.sshPort, opt.privateKey)
+			if err != nil {
+				log.Fatalf("get config from ssh with private key error: %v", err)
+			}
+		}
+	} else {
+		log.Fatalf("unsupport path: %s", opt.from)
+	}
+
+	err = m.Import(opt.name, data)
 	if err != nil {
 		log.Fatalf("import config error: %v", err)
 	}
 }
 
 func init() {
+	privateKeyPath, err := loader.DefaultSSHKeyPath()
+	if err != nil {
+		log.Fatalf("get default ssh private key path error: %v", err)
+	}
 	rootCmd.AddCommand(importCmd)
 	importCmd.Flags().StringVarP(&importOpt.from, "from", "f", "", "import config from")
-	renameCmd.MarkFlagRequired("from")
+	importCmd.MarkFlagRequired("from")
+	importCmd.Flags().StringVarP(&importOpt.password, "password", "p", "", "ssh password")
+	importCmd.Flags().StringVarP(&importOpt.privateKey, "privateKey", "k", privateKeyPath, "ssh private key")
+	importCmd.Flags().IntVarP(&importOpt.sshPort, "port", "", 22, "ssh server port")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

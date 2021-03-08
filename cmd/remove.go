@@ -32,7 +32,7 @@ var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove one config",
 	Long:  `remove one config`,
-	Args: cobra.MinimumNArgs(1),
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		removeOpt.name = args[0]
 		remove(&removeOpt)

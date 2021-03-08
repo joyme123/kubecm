@@ -16,7 +16,7 @@ import (
 
 type Interface interface {
 	List() (*Configuration, error)
-	Import(name string, location string) error
+	Import(name string, configData []byte) error
 	Remove(name string) error
 	Rename(src string, dst string) error
 	Use(name string) error
@@ -75,14 +75,10 @@ func (i *impl) List() (*Configuration, error) {
 	return i.conf, nil
 }
 
-func (i *impl) Import(name string, location string) error {
+func (i *impl) Import(name string, configData []byte) error {
 	i.m.Lock()
 	defer i.m.Unlock()
 
-	_, err := os.Open(location)
-	if err != nil {
-		return fmt.Errorf("open location %s error: %v", location, err)
-	}
 
 	index := i.search(name)
 	if index >= 0 {
@@ -91,7 +87,7 @@ func (i *impl) Import(name string, location string) error {
 
 	id := uuid.New().String()
 	newLocation := path.Join(i.configDir, id)
-	if err := util.Copy(location, newLocation); err != nil {
+	if err := util.Copy(configData, newLocation); err != nil {
 		return err
 	}
 
