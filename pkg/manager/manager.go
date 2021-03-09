@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/joyme123/kubecm/pkg/util"
 
+	"github.com/ghodss/yaml"
 	"github.com/google/uuid"
 )
 
@@ -63,7 +63,7 @@ func (i *impl) init() error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(data, i.conf)
+	err = yaml.Unmarshal(data, i.conf)
 	if err != nil {
 		return nil
 	}
@@ -78,7 +78,6 @@ func (i *impl) List() (*Configuration, error) {
 func (i *impl) Import(name string, configData []byte) error {
 	i.m.Lock()
 	defer i.m.Unlock()
-
 
 	index := i.search(name)
 	if index >= 0 {
@@ -192,9 +191,9 @@ func (i *impl) search(name string) int {
 }
 
 func (i *impl) write() error {
-	data, err := json.Marshal(i.conf)
+	data, err := yaml.Marshal(i.conf)
 	if err != nil {
-		return fmt.Errorf("json marshal error: %v", err)
+		return fmt.Errorf("yaml marshal error: %v", err)
 	}
 
 	err = ioutil.WriteFile(i.configPath, data, 0755)

@@ -8,14 +8,14 @@ import (
 )
 
 type Configuration struct {
-	Current string       `json:"current"`
-	Items   []ConfigItem `json:"items"`
+	Current string       `json:"current" yaml:"current"`
+	Items   []ConfigItem `json:"items" yaml:"items"`
 }
 
 type ConfigItem struct {
-	Name      string    `json:"name"`
-	Location  string    `json:"location"`
-	TimeStamp time.Time `json:"timestamp"`
+	Name      string    `json:"name" yaml:"name"`
+	Location  string    `json:"location" yaml:"location"`
+	TimeStamp time.Time `json:"timestamp" yaml:"timestamp"`
 }
 
 func (c *Configuration) Print() {

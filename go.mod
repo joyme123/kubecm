@@ -3,6 +3,7 @@ module github.com/joyme123/kubecm
 go 1.14
 
 require (
+	github.com/ghodss/yaml v1.0.0
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/uuid v1.2.0
 	github.com/gookit/color v1.3.8
