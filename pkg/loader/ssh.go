@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func IsSSH(path string) bool {
+func isSSH(path string) bool {
 	if strings.HasPrefix(path, "ssh://") {
 		return true
 	}
@@ -27,7 +27,7 @@ func DefaultSSHKeyPath() (string, error) {
 	return privateKeyPath, nil
 }
 
-func SSHGetWithPassword(path string, port int, password string) ([]byte, error) {
+func sshGetWithPassword(path string, port int, password string) ([]byte, error) {
 	params, err := getParams(path)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func SSHGetWithPassword(path string, port int, password string) ([]byte, error) 
 	return sshGet(config, params.ip, port, params.path)
 }
 
-func SSHGetWithPrivateKey(filepath string, port int, privateKeyPath string) ([]byte, error) {
+func sshGetWithPrivateKey(filepath string, port int, privateKeyPath string) ([]byte, error) {
 	params, err := getParams(filepath)
 	if err != nil {
 		return nil, err

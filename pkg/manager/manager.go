@@ -2,6 +2,8 @@ package manager
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/joyme123/kubecm/pkg/types"
 	"io/ioutil"
 	"os"
 	"path"
@@ -11,15 +13,15 @@ import (
 	"github.com/joyme123/kubecm/pkg/util"
 
 	"github.com/ghodss/yaml"
-	"github.com/google/uuid"
 )
 
 type Interface interface {
-	List() (*Configuration, error)
-	Import(name string, configData []byte) error
+	List() (*types.Configuration, error)
+	Import(name string, configData []byte, override bool) error
 	Remove(name string) error
 	Rename(src string, dst string) error
 	Use(name string) error
+	SaveSyncInfo(name string, syncInfo *types.Sync) error
 }
 
 type impl struct {
@@ -28,7 +30,7 @@ type impl struct {
 	configPath string
 	configDir  string
 	kubePath   string
-	conf       *Configuration
+	conf       *types.Configuration
 }
 
 func NewInterface(configDir string, configPath string, kubePath string) (Interface, error) {
@@ -36,7 +38,7 @@ func NewInterface(configDir string, configPath string, kubePath string) (Interfa
 		configDir:  configDir,
 		configPath: configPath,
 		kubePath:   kubePath,
-		conf:       &Configuration{},
+		conf:       &types.Configuration{},
 	}
 
 	err := i.init()
@@ -71,31 +73,40 @@ func (i *impl) init() error {
 	return nil
 }
 
-func (i *impl) List() (*Configuration, error) {
+func (i *impl) List() (*types.Configuration, error) {
 	return i.conf, nil
 }
 
-func (i *impl) Import(name string, configData []byte) error {
+func (i *impl) Import(name string, configData []byte, override bool) error {
 	i.m.Lock()
 	defer i.m.Unlock()
 
 	index := i.search(name)
-	if index >= 0 {
+	if !override && index >= 0 {
 		return NameConflictError
 	}
 
-	id := uuid.New().String()
-	newLocation := path.Join(i.configDir, id)
+	var newLocation string
+	if index >= 0 {
+		newLocation = i.conf.Items[index].Location
+	} else {
+		id := uuid.New().String()
+		newLocation = path.Join(i.configDir, id)
+	}
 	if err := util.Copy(configData, newLocation); err != nil {
 		return err
 	}
 
-	item := ConfigItem{
+	item := types.ConfigItem{
 		Name:      name,
 		Location:  newLocation,
 		TimeStamp: time.Now(),
 	}
-	i.conf.Items = append(i.conf.Items, item)
+	if index >= 0 {
+		i.conf.Items[index] = item
+	} else {
+		i.conf.Items = append(i.conf.Items, item)
+	}
 	return i.write()
 }
 
@@ -177,6 +188,15 @@ func (i *impl) Use(name string) error {
 		return fmt.Errorf("create symlink from %s to %s error: %v", item.Location, i.kubePath, err)
 	}
 
+	return i.write()
+}
+
+func (i *impl) SaveSyncInfo(name string, syncInfo *types.Sync) error {
+	k := i.search(name)
+	if k < 0 {
+		return nil
+	}
+	i.conf.Items[k].Sync = syncInfo
 	return i.write()
 }
 
