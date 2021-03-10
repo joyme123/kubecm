@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/joyme123/kubecm/pkg/types"
 	"log"
 
 	"github.com/joyme123/kubecm/pkg/loader"
@@ -27,9 +28,10 @@ type importOptions struct {
 	name       string
 	from       string
 	password   string
-	publicKey  string
 	privateKey string
 	sshPort    int
+	save       bool
+	override   bool
 }
 
 var importOpt importOptions
@@ -52,31 +54,27 @@ func runImport(opt importOptions) {
 		log.Fatalf("fatal: %v", err)
 	}
 
-	var data []byte
-	if loader.IsLocal(opt.from) {
-		data, err = loader.LocalGet(opt.from)
-		if err != nil {
-			log.Fatalf("get config from local error: %v", err)
-		}
-	} else if loader.IsSSH(opt.from) {
-		if len(opt.password) > 0 {
-			data, err = loader.SSHGetWithPassword(opt.from, opt.sshPort, opt.password)
-			if err != nil {
-				log.Fatalf("get config from ssh with password error: %v", err)
-			}
-		} else {
-			data, err = loader.SSHGetWithPrivateKey(opt.from, opt.sshPort, opt.privateKey)
-			if err != nil {
-				log.Fatalf("get config from ssh with private key error: %v", err)
-			}
-		}
-	} else {
-		log.Fatalf("unsupport path: %s", opt.from)
+	syncInfo := &types.Sync{
+		From:       opt.from,
+		SSHPort:    opt.sshPort,
+		Password:   opt.password,
+		PrivateKey: opt.privateKey,
 	}
 
-	err = m.Import(opt.name, data)
+	data, err := loader.Load(syncInfo)
+	if err != nil {
+		log.Fatalf("load error: %v", err)
+	}
+
+	err = m.Import(opt.name, data, opt.override)
 	if err != nil {
 		log.Fatalf("import config error: %v", err)
+	}
+
+	if opt.save {
+		if err := m.SaveSyncInfo(opt.name, syncInfo); err != nil {
+			log.Fatalf("save sync info error: %v", err)
+		}
 	}
 }
 
@@ -91,6 +89,8 @@ func init() {
 	importCmd.Flags().StringVarP(&importOpt.password, "password", "p", "", "ssh password")
 	importCmd.Flags().StringVarP(&importOpt.privateKey, "privateKey", "k", privateKeyPath, "ssh private key")
 	importCmd.Flags().IntVarP(&importOpt.sshPort, "port", "", 22, "ssh server port")
+	importCmd.Flags().BoolVarP(&importOpt.save, "save", "", false, "save info for sync or not")
+	importCmd.Flags().BoolVarP(&importOpt.override, "override", "", false, "override exist config")
 
 	// Here you will define your flags and configuration settings.
 
