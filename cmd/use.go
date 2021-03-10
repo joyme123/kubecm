@@ -30,9 +30,9 @@ var useOpt useOptions
 // useCmd represents the use command
 var useCmd = &cobra.Command{
 	Use:   "use",
-	Short: "use set kube config file to specified one",
-	Long:  `use set kube config file to specified one`,
-	Args: cobra.MinimumNArgs(1),
+	Short: "set kube config file to specified one",
+	Long:  `set kube config file to specified one`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		useOpt.name = args[0]
 		use(useOpt)
