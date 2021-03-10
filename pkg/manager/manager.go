@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/joyme123/kubecm/pkg/loader"
 	"github.com/joyme123/kubecm/pkg/types"
 	"io/ioutil"
 	"os"
@@ -22,6 +23,7 @@ type Interface interface {
 	Rename(src string, dst string) error
 	Use(name string) error
 	SaveSyncInfo(name string, syncInfo *types.Sync) error
+	Sync(name string) map[string]error
 }
 
 type impl struct {
@@ -85,7 +87,11 @@ func (i *impl) Import(name string, configData []byte, override bool) error {
 	if !override && index >= 0 {
 		return NameConflictError
 	}
+	return i.importByIndex(index, name, configData)
+}
 
+// if index < 0, config will append
+func (i *impl) importByIndex(index int, name string, configData []byte) error {
 	var newLocation string
 	if index >= 0 {
 		newLocation = i.conf.Items[index].Location
@@ -97,14 +103,14 @@ func (i *impl) Import(name string, configData []byte, override bool) error {
 		return err
 	}
 
-	item := types.ConfigItem{
-		Name:      name,
-		Location:  newLocation,
-		TimeStamp: time.Now(),
-	}
 	if index >= 0 {
-		i.conf.Items[index] = item
+		i.conf.Items[index].TimeStamp = time.Now()
 	} else {
+		item := types.ConfigItem{
+			Name:      name,
+			Location:  newLocation,
+			TimeStamp: time.Now(),
+		}
 		i.conf.Items = append(i.conf.Items, item)
 	}
 	return i.write()
@@ -198,6 +204,41 @@ func (i *impl) SaveSyncInfo(name string, syncInfo *types.Sync) error {
 	}
 	i.conf.Items[k].Sync = syncInfo
 	return i.write()
+}
+
+// Sync sync target config. if name is empty, sync all
+func (i *impl) Sync(name string) map[string]error {
+	syncFunc := func(index int, name string, info *types.Sync) error {
+		if info == nil {
+			return nil
+		}
+		data, err := loader.Load(info)
+		if err != nil {
+			return err
+		}
+		return i.importByIndex(index, name, data)
+	}
+
+	res := map[string]error{}
+
+	if len(name) == 0 {
+		for index, item := range i.conf.Items {
+			if item.Sync == nil {
+				continue
+			}
+			res[item.Name] = syncFunc(index, item.Name, item.Sync)
+		}
+		return res
+	}
+
+	index := i.search(name)
+	if index < 0 {
+		res[name] = fmt.Errorf("target name not exist")
+		return res
+	}
+	item := i.conf.Items[index]
+	res[name] = syncFunc(index, item.Name, item.Sync)
+	return res
 }
 
 func (i *impl) search(name string) int {

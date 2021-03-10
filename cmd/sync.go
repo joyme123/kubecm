@@ -16,51 +16,57 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-
 	"github.com/spf13/cobra"
+	"log"
 )
 
-type renameOptions struct {
+var syncOpt syncOptions
+
+type syncOptions struct {
 	name string
-	to   string
 }
 
-var renameOpt renameOptions
-
-// renameCmd represents the rename command
-var renameCmd = &cobra.Command{
-	Use:   "rename",
-	Short: "rename config name",
-	Long:  `rename config name`,
-	Args:  cobra.MinimumNArgs(2),
+// syncCmd represents the sync command
+var syncCmd = &cobra.Command{
+	Use:   "sync",
+	Short: "sync refresh config from ssh",
+	Long: `sync refresh config from ssh. For example:
+kubecm sync k8s_cluster_1
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		renameOpt.name = args[0]
-		renameOpt.to = args[1]
-		rename(renameOpt)
+		opt := syncOptions{}
+		if len(args) > 0 {
+			opt.name = args[0]
+		}
+		sync(opt)
 	},
 }
 
-func rename(opt renameOptions) {
+func sync(opt syncOptions) {
 	m, err := newManagerInterface()
 	if err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
-	if err := m.Rename(opt.name, opt.to); err != nil {
-		log.Fatalf("rename failed, err: %v", err)
+	res := m.Sync(opt.name)
+	for name, err := range res {
+		msg := "ok"
+		if err != nil {
+			msg = err.Error()
+		}
+		log.Printf("%s: sync %s", name, msg)
 	}
 }
 
 func init() {
-	rootCmd.AddCommand(renameCmd)
+	rootCmd.AddCommand(syncCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// renameCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// syncCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// renameCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// syncCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

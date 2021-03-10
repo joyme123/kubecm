@@ -16,10 +16,10 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/joyme123/kubecm/pkg/types"
 	"log"
 
 	"github.com/joyme123/kubecm/pkg/loader"
+	"github.com/joyme123/kubecm/pkg/types"
 
 	"github.com/spf13/cobra"
 )
