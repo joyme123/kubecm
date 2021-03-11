@@ -16,6 +16,6 @@ func isLocal(path string) bool {
 }
 
 func localGet(path string) ([]byte, error) {
-	path = strings.TrimLeft(path, "file://")
+	path = strings.TrimPrefix(path, "file://")
 	return ioutil.ReadFile(path)
 }
