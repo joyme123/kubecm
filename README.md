@@ -44,3 +44,15 @@ remove config file
 ```bash
 kubecm remove -n dev_129_cluster
 ```
+
+## ZSH 配置
+
+zsh 命令行提示:
+
+在对应的主题里添加下面的配置
+```bash
+kubecm_prompt() {
+  echo " %{$fg[green]%}k8s:$(kubecm list -c)%{$reset_color%}"
+}
+local kubecm='$(kubecm_prompt)'
+```

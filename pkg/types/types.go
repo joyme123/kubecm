@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gookit/color"
@@ -26,15 +27,33 @@ type Sync struct {
 	PrivateKey string `json:"privateKey,omitempty" yaml:"privateKey,omitempty"`
 }
 
-func (c *Configuration) Print() {
+func (c *Configuration) Print(onlyCurrent bool) {
 	if c == nil {
 		fmt.Println("config is empty")
 		return
 	}
+
+	kubeConfigPath := os.Getenv("KUBECONFIG")
+	current := c.Current
+
+	if kubeConfigPath != "" {
+		for _, item := range c.Items {
+			if item.Location == kubeConfigPath {
+				current = item.Name
+				break
+			}
+		}
+	}
+
 	for _, item := range c.Items {
-		if item.Name == c.Current {
-			color.Success.Println(item.Name + "*")
-		} else {
+		if item.Name == current {
+			if onlyCurrent {
+				color.Println(item.Name)
+				break
+			} else {
+				color.Success.Println(item.Name + "*")
+			}
+		} else if !onlyCurrent {
 			fmt.Println(item.Name)
 		}
 	}

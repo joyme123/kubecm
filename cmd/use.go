@@ -22,7 +22,8 @@ import (
 )
 
 type useOptions struct {
-	name string
+	name           string
+	currentSession bool
 }
 
 var useOpt useOptions
@@ -44,7 +45,7 @@ func use(opt useOptions) {
 	if err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
-	if err := m.Use(opt.name); err != nil {
+	if err := m.Use(opt.name, opt.currentSession); err != nil {
 		log.Fatalf("use failed, err: %v", err)
 	}
 }
@@ -52,6 +53,7 @@ func use(opt useOptions) {
 func init() {
 	rootCmd.AddCommand(useCmd)
 	// Here you will define your flags and configuration settings.
+	useCmd.Flags().BoolVarP(&useOpt.currentSession, "current-session", "c", false, "change kube config only in current session")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:

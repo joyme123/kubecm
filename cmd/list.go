@@ -21,12 +21,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type listOption struct {
+	Current bool
+}
+
+var listOpt listOption
+
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list all configurations",
 	Long:  `list all configurations`,
-	Args: cobra.MinimumNArgs(0),
+	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		list()
 	},
@@ -42,11 +48,12 @@ func list() {
 	if err != nil {
 		log.Fatalf("list configs error: %v", err)
 	}
-	c.Print()
+	c.Print(listOpt.Current)
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+	listCmd.Flags().BoolVarP(&listOpt.Current, "current", "c", false, "only show current kube config name")
 
 	// Here you will define your flags and configuration settings.
 

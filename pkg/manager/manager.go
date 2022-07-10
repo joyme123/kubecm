@@ -2,14 +2,16 @@ package manager
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/joyme123/kubecm/pkg/loader"
-	"github.com/joyme123/kubecm/pkg/types"
 	"io/ioutil"
 	"os"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/joyme123/kubecm/pkg/loader"
+	"github.com/joyme123/kubecm/pkg/types"
 
 	"github.com/joyme123/kubecm/pkg/util"
 
@@ -21,7 +23,7 @@ type Interface interface {
 	Import(name string, configData []byte, override bool) error
 	Remove(name string) error
 	Rename(src string, dst string) error
-	Use(name string) error
+	Use(name string, currentSession bool) error
 	SaveSyncInfo(name string, syncInfo *types.Sync) error
 	Sync(name string) map[string]error
 }
@@ -156,7 +158,7 @@ func (i *impl) Rename(srcName string, dstName string) error {
 	return i.write()
 }
 
-func (i *impl) Use(name string) error {
+func (i *impl) Use(name string, currentSession bool) error {
 	i.m.Lock()
 	defer i.m.Unlock()
 
@@ -167,6 +169,10 @@ func (i *impl) Use(name string) error {
 
 	i.conf.Current = name
 	item := i.conf.Items[index]
+	if currentSession {
+		fmt.Printf("export KUBECONFIG=%s\n", item.Location)
+		return nil
+	}
 
 	// create symbolic link from config file to kube config file
 	kubefile, err := os.Lstat(i.kubePath)
