@@ -2,7 +2,7 @@
 
 ![resource/term.gif](resource/term.gif)
 
-kubecm(kube config manager) is used for manager config file of kubernetes.
+kubecm(kube config manager) is used for manage config files of kubernetes clusters.
 
 ## Install
 
