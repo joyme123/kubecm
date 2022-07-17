@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"sync"
 	"time"
@@ -170,8 +171,13 @@ func (i *impl) Use(name string, currentSession bool) error {
 	i.conf.Current = name
 	item := i.conf.Items[index]
 	if currentSession {
-		fmt.Printf("export KUBECONFIG=%s\n", item.Location)
-		return nil
+		_ = os.Setenv("KUBECONFIG", item.Location)
+		shell := os.Getenv("SHELL")
+		cmd := exec.Command(shell)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
 	}
 
 	// create symbolic link from config file to kube config file
