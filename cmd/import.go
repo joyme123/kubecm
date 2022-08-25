@@ -25,13 +25,14 @@ import (
 )
 
 type importOptions struct {
-	name       string
-	from       string
-	password   string
-	privateKey string
-	sshPort    int
-	save       bool
-	override   bool
+	name          string
+	from          string
+	password      string
+	privateKey    string
+	sshPort       int
+	save          bool
+	override      bool
+	apiServerAddr string
 }
 
 var importOpt importOptions
@@ -66,7 +67,7 @@ func runImport(opt importOptions) {
 		log.Fatalf("load error: %v", err)
 	}
 
-	err = m.Import(opt.name, data, opt.override)
+	err = m.Import(opt.name, data, opt.override, opt.apiServerAddr)
 	if err != nil {
 		log.Fatalf("import config error: %v", err)
 	}
@@ -91,6 +92,7 @@ func init() {
 	importCmd.Flags().IntVarP(&importOpt.sshPort, "port", "", 22, "ssh server port")
 	importCmd.Flags().BoolVarP(&importOpt.save, "save", "", false, "save info for sync or not")
 	importCmd.Flags().BoolVarP(&importOpt.override, "override", "", false, "override exist config")
+	importCmd.Flags().StringVarP(&importOpt.apiServerAddr, "apiserver-addr", "", "", "apiserver address to override kubeconfig apiserver address")
 
 	// Here you will define your flags and configuration settings.
 

@@ -21,7 +21,7 @@ import (
 
 type Interface interface {
 	List() (*types.Configuration, error)
-	Import(name string, configData []byte, override bool) error
+	Import(name string, configData []byte, override bool, apiServerAddr string) error
 	Remove(name string) error
 	Rename(src string, dst string) error
 	Use(name string, currentSession bool) error
@@ -82,7 +82,7 @@ func (i *impl) List() (*types.Configuration, error) {
 	return i.conf, nil
 }
 
-func (i *impl) Import(name string, configData []byte, override bool) error {
+func (i *impl) Import(name string, configData []byte, override bool, apiServerAddr string) error {
 	i.m.Lock()
 	defer i.m.Unlock()
 
@@ -90,11 +90,11 @@ func (i *impl) Import(name string, configData []byte, override bool) error {
 	if !override && index >= 0 {
 		return NameConflictError
 	}
-	return i.importByIndex(index, name, configData)
+	return i.importByIndex(index, name, configData, apiServerAddr)
 }
 
 // if index < 0, config will append
-func (i *impl) importByIndex(index int, name string, configData []byte) error {
+func (i *impl) importByIndex(index int, name string, configData []byte, apiServerAddr string) error {
 	var newLocation string
 	if index >= 0 {
 		newLocation = i.conf.Items[index].Location
@@ -102,6 +102,15 @@ func (i *impl) importByIndex(index int, name string, configData []byte) error {
 		id := uuid.New().String()
 		newLocation = path.Join(i.configDir, id)
 	}
+
+	if apiServerAddr != "" {
+		var err error
+		configData, err = util.ReplaceApiServerAddr(configData, apiServerAddr)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := util.Copy(configData, newLocation); err != nil {
 		return err
 	}
@@ -228,7 +237,7 @@ func (i *impl) Sync(name string) map[string]error {
 		if err != nil {
 			return err
 		}
-		return i.importByIndex(index, name, data)
+		return i.importByIndex(index, name, data, "")
 	}
 
 	res := map[string]error{}
