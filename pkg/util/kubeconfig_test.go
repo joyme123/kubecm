@@ -25,8 +25,10 @@ preferences: {}
 users:
 - name: kubernetes-admin
   user:
+    as-user-extra: null
     client-certificate-data: xxxx 
-    client-key-data: xxxx`
+    client-key-data: xxxx
+`
 
 	wantConfig := `apiVersion: v1
 clusters:
@@ -45,6 +47,7 @@ preferences: {}
 users:
 - name: kubernetes-admin
   user:
+    as-user-extra: null
     client-certificate-data: xxxx
     client-key-data: xxxx
 `
@@ -86,7 +89,7 @@ users:
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReplaceApiServerAddr() got = %v, want %v", got, tt.want)
+				t.Errorf("ReplaceApiServerAddr() got = %v, want %v", string(got), string(tt.want))
 			}
 		})
 	}
