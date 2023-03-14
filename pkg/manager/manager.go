@@ -27,6 +27,8 @@ type Interface interface {
 	Use(name string, currentSession bool) error
 	SaveSyncInfo(name string, syncInfo *types.Sync) error
 	Sync(name string) map[string]error
+	Save(filePath string) error
+	Load(filePath string) error
 }
 
 type impl struct {
@@ -260,6 +262,85 @@ func (i *impl) Sync(name string) map[string]error {
 	item := i.conf.Items[index]
 	res[name] = syncFunc(index, item.Name, item.Sync)
 	return res
+}
+
+func (i *impl) Save(filePath string) error {
+	_, err := os.Stat(filePath)
+	if err == nil {
+		return fmt.Errorf("file %s is already exist", filePath)
+	}
+
+	if !os.IsNotExist(err) {
+		return err
+	}
+
+	var savedConfig types.SavedConfig
+	savedConfig.Current = i.conf.Current
+
+	for _, item := range i.conf.Items {
+		data, err := ioutil.ReadFile(item.Location)
+		if err != nil {
+			fmt.Printf("kubeconfig %s is missing on location: %s", item.Name, item.Location)
+			continue
+		}
+		savedConfig.Items = append(savedConfig.Items, types.SavedConfigItem{
+			Name:    item.Name,
+			Content: string(data),
+		})
+	}
+
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+
+	confData, err := yaml.Marshal(savedConfig)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(confData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *impl) Load(filePath string) error {
+	confData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var savedConf types.SavedConfig
+	if err := yaml.Unmarshal(confData, &savedConf); err != nil {
+		return err
+	}
+
+	// merge with exist configurations
+	exists := make(map[string]struct{})
+	for _, item := range i.conf.Items {
+		exists[item.Name] = struct{}{}
+	}
+
+	for _, item := range savedConf.Items {
+		if _, ok := exists[item.Name]; ok {
+			fmt.Printf("%s exists, skip\n", item.Name)
+			continue
+		}
+		if err := i.Import(item.Name, []byte(item.Content), false, ""); err != nil {
+			fmt.Printf("import %s failed, err: %v\n", item.Name, err)
+			continue
+		} else {
+			fmt.Printf("import %s completed\n", item.Name)
+		}
+	}
+
+	if i.conf.Current == "" {
+		i.conf.Current = savedConf.Current
+	}
+
+	return nil
 }
 
 func (i *impl) search(name string) int {
