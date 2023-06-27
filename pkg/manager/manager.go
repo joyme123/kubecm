@@ -9,14 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/joyme123/kubecm/pkg/loader"
 	"github.com/joyme123/kubecm/pkg/types"
-
 	"github.com/joyme123/kubecm/pkg/util"
 
 	"github.com/ghodss/yaml"
+	"github.com/google/uuid"
+	"k8s.io/klog/v2"
 )
 
 type Interface interface {
@@ -48,10 +47,13 @@ func NewInterface(configDir string, configPath string, kubePath string) (Interfa
 		conf:       &types.Configuration{},
 	}
 
+	startTime := time.Now()
 	err := i.init()
 	if err != nil {
 		return nil, err
 	}
+	cost := time.Since(startTime)
+	klog.V(4).Infof("init cost: %d ms", cost.Milliseconds())
 	return i, nil
 }
 

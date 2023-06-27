@@ -9,11 +9,12 @@ require (
 	github.com/spf13/cobra v1.1.3
 	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
 	k8s.io/client-go v0.0.0-20220328171824-1110612dc6e5
+	k8s.io/klog/v2 v2.100.1
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-logr/logr v0.4.0 // indirect
+	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
@@ -35,7 +36,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apimachinery v0.0.0-20220328170958-67c29d29c4cd // indirect
-	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect

@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	goflags "flag"
 	"path"
 
 	"github.com/joyme123/kubecm/pkg/consts"
@@ -23,6 +24,8 @@ import (
 	"github.com/joyme123/kubecm/pkg/util"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"k8s.io/klog/v2"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -41,6 +44,12 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
+}
+
+func init() {
+	klog.InitFlags(nil)
+	goflags.Parse()
+	pflag.CommandLine.AddGoFlagSet(goflags.CommandLine)
 }
 
 func newManagerInterface() (manager.Interface, error) {
