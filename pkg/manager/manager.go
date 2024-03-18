@@ -185,12 +185,18 @@ func (i *impl) Use(name string, currentSession bool) error {
 	item := i.conf.Items[index]
 	if currentSession {
 		_ = os.Setenv("KUBECONFIG", item.Location)
+		_ = os.Setenv("KUBECM_SHELL", "true")
 		shell := os.Getenv("SHELL")
 		cmd := exec.Command(shell)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
+	}
+
+	if os.Getenv("KUBECM_SHELL") == "true" && os.Getenv("KUBECONFIG") != "" {
+		fmt.Printf("You can't change system kubeconfig after use `kubecm use xxx -c`. \nPlease execute cmd `exit && kubecm use %s` \n", name)
+		return nil
 	}
 
 	// create symbolic link from config file to kube config file
